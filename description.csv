@@ -1,0 +1,50 @@
+Field,Description
+Location, Bureau of Meteorology Station Number.
+DMY, Day month year in DD/MM/YYYY format.
+Precipitation, Precipitation in the 24 hours before 9am (local time). In mm.
+PrecipQual, * Quality of precipitation value.
+RainDaysNum, Number of days of rain within the days of accumulation.
+RainDaysMeasure, Accumulated number of days over which the precipitation was measured.
+Evaporation, Evaporation in 24 hours before 9am (local time). In mm.
+EvapQual, * Quality of evaporation in 24 hours before 9am (local time).
+EvayDaysNum, Days of accumulation for evaporation.
+MaxTemp, Maximum temperature in 24 hours after 9am (local time). In Degrees C.
+MaxTempQual, * Quality of maximum temperature in 24 hours after 9am (local time).
+MaxTempDays, Days of accumulation of maximum temperature.
+MinTemp, Minimum temperature in 24 hours before 9am (local time). In Degrees C.
+MinTempQual, * Quality of minimum temperature in 24 hours before 9am (local time).
+MinTempDays, Days of accumulation of minimum temperature.
+Humid00, -*- Relative humidity for observation at 00 hours Local Time. In percentage %.
+Humid00Qual, * Quality of relative humidity for observation at 00 hours Local Time.
+Humid03, -*- Relative humidity for observation at 03 hours Local Time. In percentage %.
+Humid03QUal, * Quality of relative humidity for observation at 03 hours Local Time.
+Humid06, -*- Relative humidity for observation at 06 hours Local Time. In percentage %.
+Humid06Qual, * Quality of relative humidity for observation at 06 hours Local Time.
+Humid09, -*- Relative humidity for observation at 09 hours Local Time. In percentage %.
+Humid09Qual, * Quality of relative humidity for observation at 09 hours Local Time.
+Humid12, -*- Relative humidity for observation at 12 hours Local Time. In percentage %.
+Humid12Qual, * Quality of relative humidity for observation at 12 hours Local Time.
+Humid15, -*- Relative humidity for observation at 15 hours Local Time. In percentage %.
+Humid15Qual, * Quality of relative humidity for observation at 15 hours Local Time.
+Humid18, -*- Relative humidity for observation at 18 hours Local Time. In percentage %.
+Humid18Qual, * Quality of relative humidity for observation at 18 hours Local Time.
+Humid21, -*- Relative humidity for observation at 21 hours Local Time. In percentage %.
+Humid21Qual, * Quality of relative humidity for observation at 21 hours Local Time.
+Sunshine, Number of hours of bright sunshine in the 24 hours midnight to midnight (local time).
+SunshineQual, * Quality of sunshine information.
+Okta00, Total cloud amount at 00 hours Local Time
+Okta00Qual, * Quality of total cloud amount at 00 hours Local Time.
+Okta03, Total cloud amount at 03 hours Local Time
+Okta03Qual, * Quality of total cloud amount at 03 hours Local Time.
+Okta06, Total cloud amount at 06 hours Local Time
+Okta06Qual, * Quality of total cloud amount at 06 hours Local Time.
+Okta09, Total cloud amount at 09 hours Local Time
+Okta09Qual, * Quality of total cloud amount at 09 hours Local Time.
+Okta12, Total cloud amount at 12 hours Local Time
+Okta12Qual, * Quality of total cloud amount at 12 hours Local Time.
+Okta15, Total cloud amount at 15 hours Local Time
+Okta15Qual, * Quality of total cloud amount at 15 hours Local Time.
+Okta18, Total cloud amount at 18 hours Local Time
+Okta18Qual, * Quality of total cloud amount at 18 hours Local Time.
+Okta21, Total cloud amount at 21 hours Local Time
+Okta21Qual, * Quality of total cloud amount at 21 hours Local Time.

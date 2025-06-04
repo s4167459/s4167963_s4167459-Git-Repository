@@ -1,0 +1,9 @@
+* QUALITY FLAG DESCRIPTIONS
+___________________________
+ 
+Y: quality controlled and acceptable
+N: not quality controlled
+W: quality controlled and considered wrong
+S: quality controlled and considered suspect
+I: quality controlled and inconsistent with other known information
+X: no quality information available
