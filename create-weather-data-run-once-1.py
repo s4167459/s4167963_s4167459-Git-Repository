@@ -28,7 +28,7 @@
 from import_core import create_connection, create_table, import_csv_to_table
 
 DATABASE_NAME = "climate.db" # What name do you want for your database.
-CSV_FILE = "WA.csv" #Which CSV file contains the data you want to copy.
+CSV_FILE = "AAT.csv" #Which CSV file contains the data you want to copy.
 TABLE_NAME = "weather_data"  # What name do you want for the table in your database.
 CSV_COLUMNS = ["Location","DMY","Precipitation","PrecipQual","RainDaysNum","RainDaysMeasure","Evaporation","EvapQual","EvapDaysNum","MaxTemp","MaxTempQual","MaxTempDaysNum","MinTemp","MinTempQual","MinTempDays","Humid00","Humid00Qual","Humid03","Humid03QUal","Humid06","Humid06Qual","Humid09","Humid09Qual","Humid12","Humid12Qual","Humid15","Humid15Qual","Humid18","Humid18Qual","Humid21","Humid21Qual","Sunshine","SunshineQual","Okta00","Okta00Qual","Okta03","Okta03Qual","Okta06","Okta06Qual","Okta09","Okta09Qual","Okta12","Okta12Qual","Okta15","Okta15Qual","Okta18","Okta18Qual","Okta21","Okta21Qual"]
 
