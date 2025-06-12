@@ -1,0 +1,18 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore environment files
+.env
+venv/
+
+# Ignore database files (if you want)
+*.db
+
+# Ignore large CSV or data files if you handle them with Git LFS
+*.csv
+*.zip
+
+# Ignore system files (Windows)
+Thumbs.db
+.DS_Store
