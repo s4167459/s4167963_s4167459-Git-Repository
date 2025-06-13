@@ -17,8 +17,8 @@ def get_mission_statement_page(form_data):
     """
     
     # Query personas and team members from database
-    persona_query = "SELECT persona_name, description FROM Personas ORDER BY persona_name;"
-    team_query = "SELECT name, student_number FROM TeamMembers ORDER BY name;"
+    persona_query = "SELECT name, background FROM personas ORDER BY name;"
+    team_query = "SELECT studentName, studentNum FROM studentInfo ORDER BY studentName;"
     
     personas = pyhtml.get_results_from_query("database/climate_data.db", persona_query)
     team_members = pyhtml.get_results_from_query("database/climate_data.db", team_query)
@@ -49,8 +49,8 @@ def get_mission_statement_page(form_data):
         <ul>
     """
     # Add personas
-    for persona_name, description in personas:
-        page_html += f"<li><strong>{persona_name}</strong>: {description}</li>\n"
+    for name, background in personas:
+        page_html += f"<li><strong>{name}</strong>: {background}</li>\n"
     
     page_html += """
         </ul>
@@ -61,8 +61,8 @@ def get_mission_statement_page(form_data):
         <ul>
     """
     # Add team members
-    for name, student_number in team_members:
-        page_html += f"<li>{name} - {student_number}</li>\n"
+    for studentName, studentNum in team_members:
+        page_html += f"<li>{studentName} - {studentNum}</li>\n"
     
     page_html += """
         </ul>
