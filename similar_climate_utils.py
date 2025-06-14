@@ -1,139 +1,82 @@
 import sqlite3
 import json
-import csv
-import io
 from datetime import datetime
 from collections import defaultdict
 
+def get_similarity_data(form_data):
+    start_date = form_data.get("start_date")
+    end_date = form_data.get("end_date")
+    reference_metric = form_data.get("reference_metric")
+    selected_others = form_data.get("other_metrics")
 
-def determine_granularity(start_date, end_date):
-    delta = (end_date - start_date).days
-    if delta <= 90:
-        return 'daily'
-    elif delta <= 730:
-        return 'monthly'
-    else:
-        return 'yearly'
+    if not (start_date and end_date and reference_metric):
+        return json.dumps({"error": "Missing parameters"})
 
-
-def parse_dmy_to_date(dmy_str):
     try:
-        return datetime.strptime(dmy_str, "%d/%m/%Y")
-    except:
-        return None
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        if end <= start:
+            return json.dumps({"error": "End date must be later than start date."})
+        if start.year < 1970 or end.year > 2020:
+            return json.dumps({"error": "Date out of range (1970–2020)."})
+    except ValueError:
+        return json.dumps({"error": "Invalid date format."})
 
-
-def aggregate_by_granularity(data, granularity):
-    grouped = defaultdict(list)
-    for dmy, value in data:
-        date_obj = parse_dmy_to_date(dmy)
-        if not date_obj or value is None:
-            continue
-        if granularity == 'daily':
-            key = date_obj.strftime("%Y-%m-%d")
-        elif granularity == 'monthly':
-            key = date_obj.strftime("%Y-%m")
-        else:
-            key = date_obj.strftime("%Y")
-        grouped[key].append(value)
-    aggregated = {k: sum(v)/len(v) for k, v in grouped.items() if v}
-    return aggregated
-
-
-def calculate_percentage_change(values_dict, split_date):
-    first_period = []
-    second_period = []
-    for date_str, value in values_dict.items():
-        if len(date_str) == 10:
-            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        elif len(date_str) == 7:
-            date_obj = datetime.strptime(date_str, "%Y-%m")
-        else:
-            date_obj = datetime.strptime(date_str, "%Y")
-        if date_obj < split_date:
-            first_period.append(value)
-        else:
-            second_period.append(value)
-    if not first_period or not second_period:
-        return None
-    avg1 = sum(first_period) / len(first_period)
-    avg2 = sum(second_period) / len(second_period)
-    if avg1 == 0:
-        return None
-    return ((avg2 - avg1) / avg1) * 100
-
-
-def get_similar_climate_metrics(form_data):
-    start_date = datetime.strptime(form_data["start_date"], "%Y-%m-%d")
-    end_date = datetime.strptime(form_data["end_date"], "%Y-%m-%d")
-    reference_metric = form_data["reference_metric"]
-
-    granularity = determine_granularity(start_date, end_date)
-    midpoint = start_date + (end_date - start_date) / 2
-
-    metrics = [
-        "precipitation", "evaporation", "maxTemp", "minTemp", "sunshine",
-        "humid00", "humid03", "humid06", "humid09", "humid12", "humid15", "humid18", "humid21",
-        "okta00", "okta03", "okta06", "okta09", "okta12", "okta15", "okta18", "okta21"
-    ]
+    if isinstance(selected_others, str):
+        selected_others = [selected_others]
+    elif not selected_others:
+        selected_others = []
 
     conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
-    metric_changes = {}
+    results_by_metric = {}
 
-    for metric in metrics:
-        query = f"""
+    def parse_date(dmy):
+        try:
+            if '/' in dmy:
+                day, month, year = map(int, dmy.split('/'))
+                return f"{year:04d}-{month:02d}-{day:02d}"
+            else:
+                datetime.strptime(dmy, "%Y-%m-%d")  # validate
+                return dmy
+        except Exception:
+            return None
+
+    def fetch_averaged_series(metric):
+        cur.execute(f"""
             SELECT DMY, {metric}
             FROM weather_data
-            WHERE {metric} IS NOT NULL
-              AND DMY != ''
-              AND DMY BETWEEN ? AND ?
-        """
-        cur.execute(query, (form_data["start_date"], form_data["end_date"]))
+            WHERE DMY BETWEEN ? AND ? AND {metric} IS NOT NULL
+        """, (start_date, end_date))
         rows = cur.fetchall()
-        aggregated = aggregate_by_granularity(rows, granularity)
-        change = calculate_percentage_change(aggregated, midpoint)
-        if change is not None:
-            metric_changes[metric] = change
+
+        value_by_date = defaultdict(list)
+        for dmy, val in rows:
+            iso_date = parse_date(dmy)
+            if iso_date and val is not None:
+                try:
+                    value_by_date[iso_date].append(float(val))
+                except ValueError:
+                    continue
+
+        averaged = []
+        for date, vals in sorted(value_by_date.items()):
+            avg = sum(vals) / len(vals)
+            averaged.append({"date": date, "value": round(avg, 2)})
+        return averaged
+
+    # Fetch reference metric
+    ref_series = fetch_averaged_series(reference_metric)
+
+    # Fetch other metrics
+    for metric in selected_others:
+        results_by_metric[metric] = fetch_averaged_series(metric)
 
     conn.close()
 
-    if reference_metric not in metric_changes:
-        return json.dumps({"error": "Reference metric not found or lacks data."})
-
-    reference_change = metric_changes[reference_metric]
-    similarities = []
-    for metric, change in metric_changes.items():
-        if metric == reference_metric:
-            continue
-        similarity = abs(change - reference_change)
-        similarities.append((metric, change, similarity))
-
-    similarities.sort(key=lambda x: x[2])
-    result = [{"metric": m, "change": round(c, 2)} for m, c, _ in similarities]
-
     return json.dumps({
-        "reference_metric": reference_metric,
-        "reference_change": round(reference_change, 2),
-        "similar_metrics": result
+        "reference": reference_metric,
+        "reference_series": ref_series,
+        "other_series": results_by_metric
     })
-
-
-def get_similar_climate_metrics_csv(form_data):
-    json_result = json.loads(get_similar_climate_metrics(form_data))
-    output = io.StringIO()
-    writer = csv.writer(output)
-
-    if "error" in json_result:
-        writer.writerow(["Error"])
-        writer.writerow([json_result["error"]])
-    else:
-        writer.writerow(["Reference Metric", json_result["reference_metric"]])
-        writer.writerow(["Reference Change (%)", json_result["reference_change"]])
-        writer.writerow([])
-        writer.writerow(["Similar Metric", "Change (%)"])
-        for row in json_result["similar_metrics"]:
-            writer.writerow([row["metric"], row["change"]])
-
-    return output.getvalue()
