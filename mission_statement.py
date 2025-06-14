@@ -1,5 +1,26 @@
 import pyhtml
 
+def fix_encoding(text):
+    replacements = {
+        "â€¢": "•",
+        "â€\"": "-",
+        "â€˜": "‘",
+        "â€™": "\'",
+        "â€œ": "“",
+        "â€�": "”",
+        "Ã©": "é",
+        "Ã ": "à",
+        "Ã¢": "â",
+        "Ã¨": "è",
+        "Ã´": "ô",
+        "Ã…": "Å",
+        "Ã¼": "ü",
+        "Ã¶": "ö",
+        # Add more if you encounter others
+    }
+    for bad, good in replacements.items():
+        text = text.replace(bad, good)
+    return text
 
 def get_page_html(form_data):
     print("About to return Mission Statement page")
@@ -23,8 +44,8 @@ def get_page_html(form_data):
     persona_query = "SELECT name, background FROM personas ORDER BY name;"
     team_query = "SELECT studentName, studentNum FROM studentInfo ORDER BY studentName;"
     
-    personas = pyhtml.get_results_from_query("database/climate_data.db", persona_query)
-    team_members = pyhtml.get_results_from_query("database/climate_data.db", team_query)
+    personas = pyhtml.get_results_from_query("climate.db", persona_query)
+    team_members = pyhtml.get_results_from_query("climate.db", team_query)
     
     # Build the HTML page
     page_html = """<!DOCTYPE html>
@@ -53,7 +74,8 @@ def get_page_html(form_data):
     """
     # Add personas
     for name, background in personas:
-        page_html += f"<li><strong>{name}</strong>: {background}</li>\n"
+        clean_background = fix_encoding(background).replace("\\n", "<br>")
+        page_html += f"<li><strong>{name}</strong>: {clean_background}</li>\n"
     
     page_html += """
         </ul>

@@ -7,7 +7,7 @@ import deep_dive_page
 pyhtml.need_debugging_help = True
 
 # Page routes
-pyhtml.MyRequestHandler.pages["/"] = mission_statement
+pyhtml.MyRequestHandler.pages["/m-statement"] = mission_statement
 pyhtml.MyRequestHandler.pages["/focused"] = focused_view_page
 pyhtml.MyRequestHandler.pages["/deep-dive"] = deep_dive_page
 

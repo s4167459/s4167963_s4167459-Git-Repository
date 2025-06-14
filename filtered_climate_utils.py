@@ -24,7 +24,7 @@ def get_filtered_climate_data(form_data):
         return json.dumps({"error": "Invalid date format."})
 
     # Open connection
-    conn = sqlite3.connect("database/climate_data.db")
+    conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
     # Query 1: Line graph (date vs metric)
@@ -87,7 +87,7 @@ def get_filtered_climate_data_csv(form_data):
     except ValueError:
         return None, "Invalid date format."
 
-    conn = sqlite3.connect("database/climate_data.db")
+    conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
     # Query timeseries data for CSV export

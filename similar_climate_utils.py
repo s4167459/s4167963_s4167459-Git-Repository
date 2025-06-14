@@ -77,7 +77,7 @@ def get_similar_climate_metrics(form_data):
         "okta00", "okta03", "okta06", "okta09", "okta12", "okta15", "okta18", "okta21"
     ]
 
-    conn = sqlite3.connect("database/climate_data.db")
+    conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
     metric_changes = {}
