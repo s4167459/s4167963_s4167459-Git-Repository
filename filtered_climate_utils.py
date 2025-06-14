@@ -2,7 +2,7 @@ import sqlite3
 import json
 from datetime import datetime
 
-def get_page_html(form_data):
+def get_filtered_climate_data(form_data):
     start_date = form_data.get('start_date')
     end_date = form_data.get('end_date')
     climate_type = form_data.get('climate_type')

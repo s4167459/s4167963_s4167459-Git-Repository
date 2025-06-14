@@ -1,7 +1,7 @@
 from filtered_climate_utils import get_filtered_climate_data, get_filtered_climate_data_csv
 import json
 
-def get_focused_view_page(form_data):
+def get_page_html(form_data):
     print("Generating Focused View Page...")
 
     # Initialize variables
