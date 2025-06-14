@@ -1,4 +1,4 @@
-from get_filtered_climate_data import get_filtered_climate_data, get_filtered_climate_data_csv
+from filtered_climate_utils import get_filtered_climate_data, get_filtered_climate_data_csv
 import json
 
 def get_focused_view_page(form_data):

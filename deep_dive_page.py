@@ -1,4 +1,4 @@
-from get_similar_climate_metrics import get_similar_climate_metrics, get_similar_climate_metrics_csv
+from similar_climate_utils import get_similar_climate_metrics, get_similar_climate_metrics_csv
 import json
 
 def get_page_html(form_data, export_csv=False):
