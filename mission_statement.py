@@ -1,4 +1,4 @@
-def get_mission_statement_page(form_data):
+def get_page_html(form_data):
     print("About to return Mission Statement page")
     
     # Hard-coded mission statement and purpose
