@@ -36,7 +36,14 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length).decode('utf-8')
         form_data = parse_qs(post_data)
-        form_data = {k: v[0] for k, v in form_data.items()}
+
+        # Keep single values as string, multiple as list
+        for k, v in form_data.items():
+            if len(v) == 1:
+                form_data[k] = v[0]
+            else:
+                form_data[k] = v
+
 
         parsed_url = urlparse(self.path)
         path = parsed_url.path
