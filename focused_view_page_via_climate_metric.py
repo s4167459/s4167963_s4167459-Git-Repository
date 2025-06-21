@@ -5,9 +5,11 @@ def get_page_html(form_data):
     print("Generating Focused View Page...")
 
     filtered_data = None
+    selected_metric = None
 
     if form_data:
         try:
+            selected_metric = form_data.get("climate_type")
             result_json = get_filtered_climate_data(form_data)
             result_dict = json.loads(result_json)
             if "error" in result_dict:
@@ -23,6 +25,20 @@ def get_page_html(form_data):
         "humid00", "humid03", "humid06", "humid09", "humid12", "humid15", "humid18", "humid21",
         "okta00", "okta03", "okta06", "okta09", "okta12", "okta15", "okta18", "okta21"
     ]
+
+    metric_units = {
+        "precipitation": "mm",
+        "evaporation": "mm",
+        "maxTemp": "°C",
+        "minTemp": "°C",
+        "sunshine": "hours",
+        "humid00": "%", "humid03": "%", "humid06": "%", "humid09": "%",
+        "humid12": "%", "humid15": "%", "humid18": "%", "humid21": "%",
+        "okta00": "oktas", "okta03": "oktas", "okta06": "oktas", "okta09": "oktas",
+        "okta12": "oktas", "okta15": "oktas", "okta18": "oktas", "okta21": "oktas"
+    }
+
+    y_axis_label = metric_units.get(selected_metric, "Value")
 
     station_ranges = {
         "WA": (1007, 13017), "VIC": (76031, 90015), "TAS": (91107, 99005), "SA": (16001, 18115),
@@ -96,12 +112,14 @@ def get_page_html(form_data):
 
     <div class="section">
         <h2>Climate Trend Graph</h2>
+        <p>This graph shows the daily values of the selected climate metric for the selected weather station ID range over the selected date range.</p>
         <canvas id="lineGraph" width="800" height="400"></canvas>
     </div>
 
     <div class="section">
         <h2>Summary Table (State Totals)</h2>
         <canvas id="summaryGraph" width="800" height="300"></canvas>
+        <p>This chart summarizes the total value of the selected climate metric across <strong>all states</strong> for the selected date range.</p>
     </div>
 """
 
@@ -133,7 +151,7 @@ def get_page_html(form_data):
                 }},
                 scales: {{
                     x: {{ title: {{ display: true, text: 'Date' }} }},
-                    y: {{ title: {{ display: true, text: 'Value' }} }}
+                    y: {{ title: {{ display: true, text: '{y_axis_label}' }} }}
                 }}
             }}
         }});
@@ -156,7 +174,7 @@ def get_page_html(form_data):
                     legend: {{ display: false }}
                 }},
                 scales: {{
-                    y: {{ beginAtZero: true, title: {{ display: true, text: 'Total Value' }} }}
+                    y: {{ beginAtZero: true, title: {{ display: true, text: '{y_axis_label}' }} }}
                 }}
             }}
         }});

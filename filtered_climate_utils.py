@@ -15,7 +15,6 @@ def get_filtered_climate_data(form_data):
         return json.dumps({"error": "Missing parameters"})
 
     try:
-        # Validate date format
         start = datetime.strptime(start_date, "%Y-%m-%d")
         end = datetime.strptime(end_date, "%Y-%m-%d")
         if end <= start:
@@ -28,7 +27,7 @@ def get_filtered_climate_data(form_data):
     conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
-    # Query 1: Line graph (filtered by station ID range)
+    # Line graph: station-level data
     line_query = f"""
         SELECT DMY, location, {climate_type}
         FROM weather_data
@@ -44,9 +43,9 @@ def get_filtered_climate_data(form_data):
     for date, site, value in raw_results:
         timeseries_data.append({"date": date, "value": value})
 
-    # Query 2: Summary chart (now using all station data, not just selected range)
+    # Summary chart: average per state
     bar_query = f"""
-        SELECT ws.state, SUM(wd.{climate_type})
+        SELECT ws.state, AVG(wd.{climate_type})
         FROM weather_data wd
         JOIN weather_station ws ON wd.location = ws.site_id
         WHERE wd.DMY BETWEEN ? AND ?
@@ -54,9 +53,9 @@ def get_filtered_climate_data(form_data):
         GROUP BY ws.state;
     """
     cur.execute(bar_query, (start_date, end_date))
-    state_totals = cur.fetchall()
+    state_averages = cur.fetchall()
 
-    bar_data = [{"state": state, "total": round(total, 2)} for state, total in state_totals]
+    bar_data = [{"state": state, "total": round(avg, 2)} for state, avg in state_averages]
 
     conn.close()
 
