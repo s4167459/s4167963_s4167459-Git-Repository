@@ -36,27 +36,52 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length).decode('utf-8')
         form_data = parse_qs(post_data)
-
-        # Keep single values as strings, keep multi-values as list
-        for key in form_data:
-            if key in ("start_date", "end_date", "reference_metric"):
-                form_data[key] = form_data[key][0]
+        form_data = {k: v[0] for k, v in form_data.items()}
 
         parsed_url = urlparse(self.path)
         path = parsed_url.path
 
         if path in MyRequestHandler.pages:
             page_module = MyRequestHandler.pages[path]
-            response = page_module.get_page_html(form_data)
 
+            # Handle optional export_csv flag (Deep Dive uses it)
+            export_flag = form_data.get("action") == "export"
+
+            # Call get_page_html with form_data and possibly export_csv
+            if "deep" in path:
+                response = page_module.get_page_html(form_data, export_flag)
+            else:
+                response = page_module.get_page_html(form_data)
+
+            # Handle special case: CSV dictionary return
+            if isinstance(response, dict) and "csv" in response:
+                csv_data = response["csv"]
+                filename = response.get("filename", "export.csv")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/csv")
+                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+                self.end_headers()
+                self.wfile.write(csv_data.encode("utf-8"))
+                return
+
+            # Handle plain string CSV return (Focused page CSV fallback)
+            if isinstance(response, str) and response.startswith("Content-Disposition:"):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/csv")
+                self.send_header("Content-Disposition", "attachment; filename=climate_data_export.csv")
+                self.end_headers()
+                # Return CSV content (after header line)
+                csv_data = response.split("\n\n", 1)[1]
+                self.wfile.write(csv_data.encode("utf-8"))
+                return
+
+            # Else: Treat as standard HTML response
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
             self.end_headers()
             self.wfile.write(response.encode("utf-8"))
         else:
             self.send_error(404, "Page Not Found")
-
-
 
             
 
