@@ -1,4 +1,4 @@
-from similar_climate_utils import get_similarity_data
+import similar_climate_utils
 import json
 
 def get_page_html(form_data):
