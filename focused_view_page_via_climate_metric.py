@@ -1,37 +1,20 @@
-from filtered_climate_utils import get_filtered_climate_data, get_filtered_climate_data_csv
+from filtered_climate_utils import get_filtered_climate_data
 import json
 
 def get_page_html(form_data):
     print("Generating Focused View Page...")
 
-    # Initialize variables
     filtered_data = None
-    csv_content = None
-    csv_error = None
 
     if form_data:
         try:
-            action = form_data.get("action")
-            if action == "export_csv":
-                csv_content, csv_error = get_filtered_climate_data_csv(form_data)
-                if csv_error:
-                    print("CSV export error:", csv_error)
-                else:
-                    # Return CSV content directly
-                    # return CSV as plain text with header for download
-                    return {
-                        "csv": csv_content,
-                        "filename": "climate_data_export.csv"
-                    }
+            result_json = get_filtered_climate_data(form_data)
+            result_dict = json.loads(result_json)
+            if "error" in result_dict:
+                print("Data error:", result_dict["error"])
+                filtered_data = None
             else:
-                # Default: get data for graph and summary
-                result_json = get_filtered_climate_data(form_data)
-                result_dict = json.loads(result_json)
-                if "error" in result_dict:
-                    print("Data error:", result_dict["error"])
-                    filtered_data = None  # Still show form with no data
-                else:
-                    filtered_data = result_dict
+                filtered_data = result_dict
         except Exception as e:
             print("Failed to get filtered data:", e)
 
@@ -47,27 +30,20 @@ def get_page_html(form_data):
         "AET": (200283, 200288), "AAT": (300000, 300004)
     }
 
-    # If CSV export was requested and successful, return CSV download content
-    if csv_content:
-        # This is a simple return of CSV content as a dict,
-        # web framework must detect this and handle HTTP response headers to trigger download
-        return f"Content-Disposition: attachment; filename=climate_data_export.csv\n\n{csv_content}"
-
-    # Otherwise, generate the HTML page as usual:
     page_html = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Focused View by Climate Metric</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 20px; }
-        h1, h2 { color: #2c3e50; }
-        label { display: inline-block; margin-top: 10px; font-weight: bold; }
-        select, input { margin: 5px 10px; padding: 5px; }
-        button { margin: 10px 10px; padding: 10px 20px; background: #2980b9; color: white; border: none; cursor: pointer; }
-        button:hover { background: #1c5980; }
-        canvas { max-width: 100%; margin-top: 20px; }
-        .section { margin-bottom: 30px; }
+        body {{ font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 20px; }}
+        h1, h2 {{ color: #2c3e50; }}
+        label {{ display: inline-block; margin-top: 10px; font-weight: bold; }}
+        select, input {{ margin: 5px 10px; padding: 5px; }}
+        button {{ margin: 10px 10px; padding: 10px 20px; background: #2980b9; color: white; border: none; cursor: pointer; }}
+        button:hover {{ background: #1c5980; }}
+        canvas {{ max-width: 100%; margin-top: 20px; }}
+        .section {{ margin-bottom: 30px; }}
     </style>
 </head>
 <body>
@@ -80,6 +56,7 @@ def get_page_html(form_data):
             <input type="date" name="start_date" min="1970-01-01" max="2020-12-31" required>
             <label>End:</label>
             <input type="date" name="end_date" min="1970-01-01" max="2020-12-31" required>
+            <div id="date-error" style="color:red; font-weight:bold;"></div>
         </div>
 
         <div class="section">
@@ -114,7 +91,6 @@ def get_page_html(form_data):
 
         <div class="section">
             <button type="submit" name="action" value="graph">Create graph and csv from specified</button>
-            <button type="submit" name="action" value="export_csv">Export as .csv</button>
         </div>
     </form>
 
@@ -188,6 +164,20 @@ def get_page_html(form_data):
 """
 
     page_html += """
+    <script>
+        document.querySelector("form").addEventListener("submit", function(e) {
+            const startDate = document.querySelector("input[name='start_date']").value;
+            const endDate = document.querySelector("input[name='end_date']").value;
+            const errorDiv = document.getElementById("date-error");
+            errorDiv.textContent = "";
+
+            if (startDate && endDate && endDate <= startDate) {
+                e.preventDefault();
+                errorDiv.textContent = "End date must be after start date.";
+            }
+        });
+    </script>
+
     <p><a href="/">Back to Landing Page</a></p>
 </body>
 </html>

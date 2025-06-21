@@ -1,6 +1,8 @@
 import sqlite3
 import json
 from datetime import datetime
+import io
+import csv
 
 def get_filtered_climate_data(form_data):
     start_date = form_data.get('start_date')
@@ -23,11 +25,10 @@ def get_filtered_climate_data(form_data):
     except ValueError:
         return json.dumps({"error": "Invalid date format."})
 
-    # Open connection
     conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
-    # Query 1: Line graph (date vs metric)
+    # Query 1: Line graph (filtered by station ID range)
     line_query = f"""
         SELECT DMY, location, {climate_type}
         FROM weather_data
@@ -43,18 +44,18 @@ def get_filtered_climate_data(form_data):
     for date, site, value in raw_results:
         timeseries_data.append({"date": date, "value": value})
 
-    # Query 2: Summary table — sum per state
+    # Query 2: Summary chart (now using all station data, not just selected range)
     bar_query = f"""
         SELECT ws.state, SUM(wd.{climate_type})
         FROM weather_data wd
         JOIN weather_station ws ON wd.location = ws.site_id
-        WHERE wd.location BETWEEN ? AND ?
-          AND wd.DMY BETWEEN ? AND ?
+        WHERE wd.DMY BETWEEN ? AND ?
           AND wd.{climate_type} IS NOT NULL
         GROUP BY ws.state;
     """
-    cur.execute(bar_query, (start_station, end_station, start_date, end_date))
+    cur.execute(bar_query, (start_date, end_date))
     state_totals = cur.fetchall()
+
     bar_data = [{"state": state, "total": round(total, 2)} for state, total in state_totals]
 
     conn.close()
@@ -64,8 +65,6 @@ def get_filtered_climate_data(form_data):
         "bar_totals": bar_data
     })
 
-import io
-import csv
 
 def get_filtered_climate_data_csv(form_data):
     start_date = form_data.get('start_date')
@@ -90,7 +89,6 @@ def get_filtered_climate_data_csv(form_data):
     conn = sqlite3.connect("climate.db")
     cur = conn.cursor()
 
-    # Query timeseries data for CSV export
     query = f"""
         SELECT DMY, {climate_type}
         FROM weather_data
@@ -99,7 +97,6 @@ def get_filtered_climate_data_csv(form_data):
           AND {climate_type} IS NOT NULL
         ORDER BY DMY ASC;
     """
-
     cur.execute(query, (start_station, end_station, start_date, end_date))
     rows = cur.fetchall()
     conn.close()
@@ -109,7 +106,6 @@ def get_filtered_climate_data_csv(form_data):
     writer.writerow(['date', climate_type])
 
     for dmy, value in rows:
-        # Convert dd/mm/yyyy to yyyy-mm-dd
         day, month, year = dmy.split('/')
         iso_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
         writer.writerow([iso_date, value])
